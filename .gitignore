@@ -2,9 +2,9 @@
 **/node_modules/
 
 # ENV files for all services
-**/.env
-**/.env.*
-*.local
+# **/.env
+# **/.env.*
+# *.local
 
 # Build output
 **/dist/
