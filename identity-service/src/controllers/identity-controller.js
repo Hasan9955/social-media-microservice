@@ -8,14 +8,14 @@ const { validateRegistration, validateLogin } = require('../utils/validation')
 // user registration
 
 const registerUser = async (req, res) => {
-    
+
     logger.info('Registration endpoint hit....')
     try {
-        
-        //validate the schema 
-        const {error} = validateRegistration(req.body)
 
-        if(error) {
+        //validate the schema 
+        const { error } = validateRegistration(req.body)
+
+        if (error) {
             logger.warn('Validation error', error.details[0].message)
 
             return res.status(400).json({
@@ -31,7 +31,7 @@ const registerUser = async (req, res) => {
             $or: [{ username }, { email }]
         })
 
-        if(user) {
+        if (user) {
             logger.warn('User already exists')
 
             return res.status(400).json({
@@ -46,19 +46,19 @@ const registerUser = async (req, res) => {
             password
         })
         await user.save();
-        
-            logger.warn('User created successfully', user._id)
 
-            const {accessToken, refreshToken} = await generateToken(user)
+        logger.warn('User created successfully', user._id)
+
+        const { accessToken, refreshToken } = await generateToken(user)
 
 
-            return res.status(201).json({
-                success: true,
-                message: 'User created successfully',
-                accessToken,
-                refreshToken
-            })
-        
+        return res.status(201).json({
+            success: true,
+            message: 'User created successfully',
+            accessToken,
+            refreshToken
+        })
+
 
     } catch (error) {
         logger.error('Registration error occurred', error)
@@ -74,22 +74,22 @@ const registerUser = async (req, res) => {
 // user login 
 const loginUser = async (req, res) => {
     logger.info('Login endpoint hit....')
-    try { 
-        const {error} = validateLogin(req.body)
+    try {
+        const { error } = validateLogin(req.body)
 
-        if(error) {
+        if (error) {
             logger.warn('Validation error', error.details[0].message)
 
             return res.status(400).json({
                 success: false,
                 message: error.details[0].message
-        
+
             })
         }
 
         const { email, password } = req.body
-        const user = await User.findOne({email})
-        if(!user) {
+        const user = await User.findOne({ email })
+        if (!user) {
             logger.warn('Invalid email or password')
             return res.status(400).json({
                 success: false,
@@ -99,7 +99,7 @@ const loginUser = async (req, res) => {
 
         // compare password
         const isMatch = await user.comparePassword(password)
-        if(!isMatch) {
+        if (!isMatch) {
             logger.warn('Invalid email or password')
             return res.status(400).json({
                 success: false,
@@ -107,7 +107,7 @@ const loginUser = async (req, res) => {
             })
         }
 
-        const {accessToken, refreshToken} = await generateToken(user)
+        const { accessToken, refreshToken } = await generateToken(user)
 
         return res.status(200).json({
             success: true,
@@ -131,9 +131,10 @@ const loginUser = async (req, res) => {
 const refreshToken = async (req, res) => {
     logger.info('Refresh token endpoint hit....')
     try {
-        
+
         const { refreshToken } = req.body
-        if(!refreshToken) {
+        console.log(refreshToken)
+        if (!refreshToken) {
             logger.warn('Refresh token is required')
             return res.status(400).json({
                 success: false,
@@ -143,16 +144,17 @@ const refreshToken = async (req, res) => {
 
         // verify refresh token
         const storedToken = await RefreshToken.findOne({ token: refreshToken })
-        if(!storedToken || storedToken.expiryDate < new Date()) {
+        if (!storedToken || storedToken.expiryDate < new Date()) {
             logger.warn('Invalid or expired refresh token')
             return res.status(400).json({
                 success: false,
                 message: 'Invalid or expired refresh token'
             })
         }
-
-        const user = await User.findById(storedToken.userId)
-        if(!user) {
+ 
+        const user = await User.findById(storedToken.user)
+        
+        if (!user) {
             logger.warn('User not found')
             return res.status(400).json({
                 success: false,
@@ -162,7 +164,7 @@ const refreshToken = async (req, res) => {
 
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await generateToken(user)
 
-        
+
 
         // delete the old refresh token
         await RefreshToken.deleteOne({ _id: storedToken._id })
@@ -189,13 +191,13 @@ const logoutUser = async (req, res) => {
     logger.info('Logout endpoint hit....')
     try {
         const { refreshToken } = req.body
-        if(!refreshToken) {
+        if (!refreshToken) {
             logger.warn('Refresh token is required')
             return res.status(400).json({
                 success: false,
                 message: 'Refresh token is required'
             })
-        } 
+        }
 
         // delete the refresh token
         await RefreshToken.deleteOne({ _id: storedToken._id })
@@ -211,7 +213,7 @@ const logoutUser = async (req, res) => {
 
         return res.status(500).json({
             success: false,
-            message: 'Logout error occurred'    
+            message: 'Logout error occurred'
         })
     }
 }
@@ -220,5 +222,7 @@ const logoutUser = async (req, res) => {
 
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    refreshToken,
+    logoutUser
 }
