@@ -90,7 +90,17 @@ app.use('/v1/auth', proxy(process.env.IDENTITY_SERVICE_URL, {
         return proxyResData;
     }
 }));
- 
+
+
+
+// setting up proxy for post service
+app.use('/v1/posts', proxy(process.env.POST_SERVICE_URL, {
+
+})
+);
+
+
+
 // Global error handler
 app.use(errorHandler);
 
