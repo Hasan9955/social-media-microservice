@@ -36,17 +36,6 @@ const userSchema = new mongoose.Schema({
 
 
 
-// userSchema.pre('save', async function (next) {
-//     if (this.isModified('password')) {
-//         try {
-//             this.password = await argon2.hash(this.password)
-//             next()
-//         } catch (error) {
-//             return next(error)
-//         }
-//     }
-// })
-
 userSchema.pre('save', async function () {
     if (this.isModified('password')) {
         this.password = await argon2.hash(this.password);
@@ -70,3 +59,19 @@ userSchema.index({ username: 'text' })
 const User = mongoose.model('User', userSchema)
 
 module.exports = User
+
+
+
+
+
+
+// userSchema.pre('save', async function (next) {
+//     if (this.isModified('password')) {
+//         try {
+//             this.password = await argon2.hash(this.password)
+//             next()
+//         } catch (error) {
+//             return next(error)
+//         }
+//     }
+// })
